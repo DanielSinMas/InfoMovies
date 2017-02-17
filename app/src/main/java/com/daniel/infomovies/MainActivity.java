@@ -2,7 +2,7 @@ package com.daniel.infomovies;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -22,9 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = (RecyclerView) findViewById(R.id.rv_movies_list);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-        moviesAdapter = new MoviesAdapter(1);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        moviesAdapter = new MoviesAdapter(10);
         recyclerView.setAdapter(moviesAdapter);
 
     }
