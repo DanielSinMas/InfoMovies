@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">InfoMovies</string>
     <string name="action_settings">Settings</string>
+    <string name="pref_sortOrder">Sort order</string>
+    <string name="pref_sortOrder_default">popularity.desc</string>
+    <string name="pref_sortOrder_key">Sort</string>
 </resources>
