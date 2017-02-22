@@ -1,18 +1,17 @@
 package com.daniel.infomovies;
 
-import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,102 +24,86 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 
-public class MainFragment extends Fragment implements OnTaskCompleted, MoviesAdapter.Callback{
+public class SearchActivity extends AppCompatActivity implements OnTaskCompleted{
 
+    private Button searchButton;
     private RecyclerView recyclerView;
-    private MoviesAdapter moviesAdapter;
+    private ProgressBar progressBar;
     private JSONArray array;
     private MovieItem[] list;
-    private ProgressDialog progressDialog;
-    private String TAG = MainFragment.class.getSimpleName();
-
-    public MainFragment() {}
-
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
-        inflater.inflate(R.menu.fragment, menu);
-    }
-
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.movies_recycler);
-
-        if(savedInstanceState != null){
-            list=(MovieItem[])savedInstanceState.get("arrayList");
-        }
-
-        return rootView;
-    }
+    private MoviesAdapter moviesAdapter;
+    private EditText editText;
+    private TextView noResults;
+    private static String TAG = SearchActivity.class.getSimpleName();
 
     @Override
-    public void onResume() {
-        super.onResume();
-        moviesAdapter = new MoviesAdapter(getActivity(), null);
-        recyclerView.setAdapter(moviesAdapter);
-        addImages();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search);
+
+        searchButton = (Button) findViewById(R.id.bt_search);
+        recyclerView = (RecyclerView) findViewById(R.id.search_movie_recycler);
+        progressBar = (ProgressBar) findViewById(R.id.pb_movies);
+        editText = (EditText) findViewById(R.id.ed_search);
+        noResults = (TextView) findViewById(R.id.tv_no_result);
+
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                noResults.setVisibility(View.GONE);
+                if(editText.getText().toString()==null || editText.getText().toString().equals("")){
+                    Toast.makeText(getApplicationContext(), "Cant search nothing", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    progressBar.setVisibility(View.VISIBLE);
+                    addImages(editText.getText().toString());
+                }
+            }
+        });
     }
 
-    private void addImages(){
-        progressDialog = new ProgressDialog(getActivity());
-        getMovies get = new getMovies(this, progressDialog);
-        get.execute();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    private void addImages(String searchText){
+        SearchMovies get = new SearchMovies(this);
+        get.execute(searchText);
     }
 
     @Override
     public void onTaskCompleted() {
-        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(list));
-        recyclerView.setAdapter(moviesAdapter);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        recyclerView.setHasFixedSize(true);
-        Log.e(TAG, "List size: " + list.length);
+        Log.e(TAG, "Array length: " +array.length());
+        if(array.length()==1){
+            noResults.setVisibility(View.VISIBLE);
+        }
+        else{
+            recyclerView.setVisibility(View.VISIBLE);
+            moviesAdapter = new MoviesAdapter(this, Arrays.asList(list));
+            recyclerView.setAdapter(moviesAdapter);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setHasFixedSize(true);
+            Log.e(TAG, "List size: " + list.length);
+        }
+
     }
 
-    @Override
-    public void onItemSelected(MovieItem item) {
-
-    }
-
-    private class getMovies extends AsyncTask{
+    private class SearchMovies extends AsyncTask<String, Void, JSONArray> {
         private OnTaskCompleted listener;
-        private ProgressDialog progressDialog;
 
-        public getMovies(OnTaskCompleted listener, ProgressDialog progress) {
+        public SearchMovies(OnTaskCompleted listener) {
             super();
-            this.progressDialog=progress;
             this.listener = listener;
         }
 
         @Override
         protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
             super.onPreExecute();
-
-            progressDialog.setMessage("Loading");
-            progressDialog.show();
         }
 
-        @Override
-        protected Object doInBackground(Object[] params) {
+
+        protected JSONArray doInBackground(String...params) {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL(Utility.getDiscoverUrl());
+                URL url = new URL(Utility.getSearchUrl(params[0]));
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setDoInput(true);
@@ -150,8 +133,8 @@ public class MainFragment extends Fragment implements OnTaskCompleted, MoviesAda
         }
 
         @Override
-        protected void onPostExecute(Object o) {
-            progressDialog.dismiss();
+        protected void onPostExecute(JSONArray jsonArray) {
+            progressBar.setVisibility(View.GONE);
             if(array!=null && array.length()>0) {
                 list = new MovieItem[10];
                 MovieItem movie_item;

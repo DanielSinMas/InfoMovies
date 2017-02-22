@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
@@ -39,7 +41,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
         boolean shouldAttachToParentImmediately = false;
 
         View view = inflater.inflate(layoutIdForListItem, parent, shouldAttachToParentImmediately);
-        view.setMinimumHeight(parent.getMeasuredHeight() / 2);
+        RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) view.getLayoutParams();
         MoviesViewHolder viewHolder = new MoviesViewHolder(view);
 
         return viewHolder;
@@ -48,8 +50,11 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
     @Override
     public void onBindViewHolder(MoviesViewHolder holder, final int position) {
         Picasso.with(context).load(Utility.getImageUrl()+list.get(position).poster_path).into(holder.movieImage);
+        holder.moviteTitle.setText(list.get(position).title);
+        holder.releaseDate.setText("Release date: " + list.get(position).release_date);
+        holder.average.setText("Vote average: " + list.get(position).vote_average+"");
 
-        holder.movieImage.setOnClickListener(new View.OnClickListener() {
+        holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ((Callback) context).onItemSelected(list.get(position));
@@ -66,11 +71,19 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
     public class MoviesViewHolder extends RecyclerView.ViewHolder{
 
         ImageView movieImage;
+        TextView moviteTitle;
+        TextView releaseDate;
+        TextView average;
+        LinearLayout linearLayout;
 
         public MoviesViewHolder(View itemView) {
             super(itemView);
 
             movieImage = (ImageView) itemView.findViewById(R.id.iv_movie_thumbnail);
+            moviteTitle = (TextView) itemView.findViewById(R.id.tv_movie_item_title);
+            releaseDate = (TextView) itemView.findViewById(R.id.tv_movie_item_release_Date);
+            average = (TextView) itemView.findViewById(R.id.tv_movie_item_average);
+            linearLayout = (LinearLayout) itemView.findViewById(R.id.movie_item_layout);
         }
     }
 }

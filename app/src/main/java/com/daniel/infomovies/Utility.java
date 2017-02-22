@@ -14,6 +14,7 @@ public class Utility {
     public static final String DEV_KEY = "a1ff53c71d3eae87a2bbefb9e1c3885d";
 
     private static final String URL_BASE = "https://api.themoviedb.org/3";
+    private static final String SEARCH_URL_BASE = "http://api.themoviedb.org/3/search/movie?query=";
     private static final String SORT = "?sort_by=";
     private static String SORT_CRITERIA = "popularity.desc";
     private static final String API = "api_key=";
@@ -58,6 +59,13 @@ public class Utility {
     public static String getDiscoverUrl(){
         StringBuilder builder = new StringBuilder();
         builder.append(URL_BASE).append(getQueryType(0)).append(SORT).append(SORT_CRITERIA).append("&"+API).append(API_KEY);
+        Log.e("Utility", "URL: " + builder.toString());
+        return builder.toString();
+    }
+
+    public static String getSearchUrl(String toSearch){
+        StringBuilder builder = new StringBuilder();
+        builder.append(SEARCH_URL_BASE).append(toSearch+"&"+API).append(API_KEY);
         Log.e("Utility", "URL: " + builder.toString());
         return builder.toString();
     }
