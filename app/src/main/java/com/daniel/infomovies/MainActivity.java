@@ -3,6 +3,7 @@ package com.daniel.infomovies;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -10,7 +11,7 @@ import android.view.MenuItem;
  * Created by Daniel on 21/02/2017.
  */
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MoviesAdapter.Callback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,4 +35,12 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onItemSelected(MovieItem item) {
+        Log.e("MainActivity", "Item: " + item.title);
+
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra("movieItem", item);
+        startActivity(intent);
+    }
 }

@@ -23,14 +23,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public class MainFragment extends Fragment implements OnTaskCompleted, MoviesAdapter.Callback{
 
     private RecyclerView recyclerView;
     private MoviesAdapter moviesAdapter;
     private JSONArray array;
-    private MovieItem[] list;
+    private ArrayList<MovieItem> list;
     private ProgressDialog progressDialog;
     private String TAG = MainFragment.class.getSimpleName();
 
@@ -48,7 +48,7 @@ public class MainFragment extends Fragment implements OnTaskCompleted, MoviesAda
         recyclerView = (RecyclerView) rootView.findViewById(R.id.movies_recycler);
 
         if(savedInstanceState != null){
-            list=(MovieItem[])savedInstanceState.get("arrayList");
+            list=(ArrayList<MovieItem>) savedInstanceState.get("arrayList");
         }
 
         return rootView;
@@ -85,12 +85,12 @@ public class MainFragment extends Fragment implements OnTaskCompleted, MoviesAda
 
     @Override
     public void onTaskCompleted() {
-        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(list));
+        moviesAdapter = new MoviesAdapter(getActivity(), list);
         recyclerView.setAdapter(moviesAdapter);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setHasFixedSize(true);
-        Log.e(TAG, "List size: " + list.length);
+        Log.e(TAG, "List size: " + list.size());
     }
 
     @Override
@@ -153,9 +153,9 @@ public class MainFragment extends Fragment implements OnTaskCompleted, MoviesAda
         protected void onPostExecute(Object o) {
             progressDialog.dismiss();
             if(array!=null && array.length()>0) {
-                list = new MovieItem[10];
+                list = new ArrayList<MovieItem>();
                 MovieItem movie_item;
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < array.length(); i++) {
                     try {
                         JSONObject obj = (JSONObject) array.get(i);
                         movie_item = new MovieItem(
@@ -166,7 +166,7 @@ public class MainFragment extends Fragment implements OnTaskCompleted, MoviesAda
                                 Float.parseFloat(obj.get("vote_average").toString()),
                                 obj.get("release_date").toString()
                         );
-                        list[i] = movie_item;
+                        list.add(movie_item);
 
                     } catch (JSONException e) {
                         e.printStackTrace();

@@ -43,7 +43,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/originalTitle"
+                        android:id="@+id/detailOriginalTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="10dp"
@@ -59,7 +59,7 @@
                         android:textSize="10dp" />
 
                     <TextView
-                        android:id="@+id/releaseDate"
+                        android:id="@+id/detailReleaseDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
@@ -77,7 +77,7 @@
                         android:textSize="10dp" />
 
                     <TextView
-                        android:id="@+id/voteAverage"
+                        android:id="@+id/detailVoteAverage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
@@ -90,7 +90,6 @@
                         android:id="@+id/buttonFavorite"
                         android:layout_width="wrap_content"
                         android:layout_height="40dp"
-                        android:onClick="favorites"
                         android:text="Favorites"
                         android:tag="R.drawable.favoff" />
 

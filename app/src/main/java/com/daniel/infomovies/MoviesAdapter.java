@@ -2,6 +2,7 @@ package com.daniel.infomovies;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,7 +30,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
         void onItemSelected(MovieItem item);
     }
 
-    public MoviesAdapter(Context context, List<MovieItem> list){
+    public MoviesAdapter(Context context, ArrayList<MovieItem> list){
         this.context=context;
         this.list=list;
     }
@@ -38,10 +40,8 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
         Context context = parent.getContext();
         int layoutIdForListItem = R.layout.movie_item;
         LayoutInflater inflater = LayoutInflater.from(context);
-        boolean shouldAttachToParentImmediately = false;
 
-        View view = inflater.inflate(layoutIdForListItem, parent, shouldAttachToParentImmediately);
-        RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) view.getLayoutParams();
+        View view = inflater.inflate(layoutIdForListItem, parent, false);
         MoviesViewHolder viewHolder = new MoviesViewHolder(view);
 
         return viewHolder;
@@ -57,6 +57,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
         holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(TAG, "Item: " + list.get(position).title);
                 ((Callback) context).onItemSelected(list.get(position));
             }
         });

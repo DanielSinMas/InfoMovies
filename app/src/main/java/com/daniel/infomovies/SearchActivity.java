@@ -1,10 +1,13 @@
 package com.daniel.infomovies;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,19 +25,30 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 
-public class SearchActivity extends AppCompatActivity implements OnTaskCompleted{
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Cancellable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
+public class SearchActivity extends AppCompatActivity implements OnTaskCompleted, MoviesAdapter.Callback{
 
     private Button searchButton;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private JSONArray array;
-    private MovieItem[] list;
+    private ArrayList<MovieItem> list;
     private MoviesAdapter moviesAdapter;
     private EditText editText;
     private TextView noResults;
     private static String TAG = SearchActivity.class.getSimpleName();
+    private Disposable disposable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +69,37 @@ public class SearchActivity extends AppCompatActivity implements OnTaskCompleted
                     Toast.makeText(getApplicationContext(), "Cant search nothing", Toast.LENGTH_SHORT).show();
                 }
                 else{
+                    editText.setEnabled(false);
+                    recyclerView.setAdapter(new MoviesAdapter(getApplicationContext(), null));
+                    recyclerView.setVisibility(View.GONE);
                     progressBar.setVisibility(View.VISIBLE);
                     addImages(editText.getText().toString());
                 }
             }
         });
+
+        Observable<String> stringObservable = createTextChangeObservable();
+        disposable = stringObservable
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        //showProgressBar();
+                        // TODO 1
+                        // create showProgressBar function and hideProgressBar functions
+                    }
+                })
+                .observeOn(Schedulers.io())
+                .map(new Function<String, ArrayList<MovieItem>>() {
+                    @Override
+                    public ArrayList<MovieItem> apply(String s) throws Exception {
+                        //return addImages(s);
+                        // TODO 2
+                        // create interface to return values from asyncTask
+                        return null;
+                    }
+                })
+                .subscribe();
     }
 
     private void addImages(String searchText){
@@ -70,22 +110,24 @@ public class SearchActivity extends AppCompatActivity implements OnTaskCompleted
     @Override
     public void onTaskCompleted() {
         Log.e(TAG, "Array length: " +array.length());
-        if(array.length()==1){
+        editText.setEnabled(true);
+        if(array.length()<2){
             noResults.setVisibility(View.VISIBLE);
         }
         else{
+            noResults.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
-            moviesAdapter = new MoviesAdapter(this, Arrays.asList(list));
+            moviesAdapter = new MoviesAdapter(this, list);
             recyclerView.setAdapter(moviesAdapter);
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             recyclerView.setHasFixedSize(true);
-            Log.e(TAG, "List size: " + list.length);
+            Log.e(TAG, "List size: " + list.size());
         }
 
     }
 
-    private class SearchMovies extends AsyncTask<String, Void, JSONArray> {
+    private class SearchMovies extends AsyncTask<String, ArrayList<MovieItem>, JSONArray> {
         private OnTaskCompleted listener;
 
         public SearchMovies(OnTaskCompleted listener) {
@@ -136,9 +178,9 @@ public class SearchActivity extends AppCompatActivity implements OnTaskCompleted
         protected void onPostExecute(JSONArray jsonArray) {
             progressBar.setVisibility(View.GONE);
             if(array!=null && array.length()>0) {
-                list = new MovieItem[10];
+                list = new ArrayList<>();
                 MovieItem movie_item;
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i<array.length(); i++) {
                     try {
                         JSONObject obj = (JSONObject) array.get(i);
                         movie_item = new MovieItem(
@@ -149,14 +191,59 @@ public class SearchActivity extends AppCompatActivity implements OnTaskCompleted
                                 Float.parseFloat(obj.get("vote_average").toString()),
                                 obj.get("release_date").toString()
                         );
-                        list[i] = movie_item;
+                        list.add(movie_item);
 
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
-                listener.onTaskCompleted();
             }
+            listener.onTaskCompleted();
         }
+    }
+
+    @Override
+    public void onItemSelected(MovieItem item) {
+        Log.e(TAG, "Item: " + item.title);
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra("movieItem", item);
+        startActivity(intent);
+    }
+
+    private Observable<String> createTextChangeObservable(){
+
+        Observable<String> textChangeObservable = Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe( final ObservableEmitter<String> emitter) throws Exception {
+                final TextWatcher watcher = new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        emitter.onNext(charSequence.toString());
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+
+                    }
+                };
+
+                editText.addTextChangedListener(watcher);
+
+                emitter.setCancellable(new Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        editText.removeTextChangedListener(watcher);
+                    }
+                });
+
+            }
+        });
+
+        return null;
     }
 }
